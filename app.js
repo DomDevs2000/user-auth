@@ -1,16 +1,16 @@
 const express = require('express');
-
-const bodyParser = require('body-parser');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const { default: mongoose } = require('mongoose');
-const { nextTick } = require('process');
 const LocalStrategy = require('passport-local').Strategy;
 const Schema = mongoose.Schema;
+require('dotenv').config();
+
 // ----------------------------------------------------------------
 async function db() {
-	await mongoose.connect('mongodb://localhost:27017/user-auth');
+	await mongoose.connect(process.env.DB_URL);
 	console.log('Connected to MongoDB');
 }
 
@@ -34,6 +34,7 @@ app.set('view engine', 'ejs');
 app.use(session({ secret: 'test', resave: false, saveUninitialized: true }));
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
+app.use(passport.initialize());
 
 app.get('/', (req, res) => {
 	res.render('index', { user: req.user });
@@ -49,7 +50,7 @@ app.post('/sign-up', (req, res) => {
 		password: req.body.password,
 	}).save((err) => {
 		if (err) {
-			return nextTick(err);
+			return next(err);
 		}
 		res.redirect('/');
 	});
@@ -100,6 +101,26 @@ passport.deserializeUser(function (id, done) {
 	});
 });
 
-app.listen(3000, () =>
-	console.log('Server Listening at http://localhost:3000')
+app.listen(process.env.SERVER_PORT, () =>
+	console.log(`Server Listening On Port: ${process.env.SERVER_PORT}`)
 );
+
+// Autenticate Usernames Passwords -- Check if User Exists if not display information
+// bcrypt / hash passwords
+
+// bcrypt.hash('password', 10, (err, hashedPassword) => {
+// 	if (err) {
+// 		console.log('Failed to generate a new password');
+// 	} else {
+// 		password = hashedPassword;
+// 	}
+// });
+// bcrypt.compare(password, user.password, (err, res) => {
+// 	if (res) {
+// 		// passwords match! log user in
+// 		return done(null, user);
+// 	} else {
+// 		// passwords do not match!
+// 		return done(null, false, { message: 'Incorrect password' });
+// 	}
+// });
