@@ -1,11 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const passport = require('passport');
-const { default: mongoose } = require('mongoose');
+const mongoose = require('mongoose');
 const LocalStrategy = require('passport-local').Strategy;
 const Schema = mongoose.Schema;
-require('dotenv').config();
 const { SALT, SESSION_SECRET, SERVER_PORT } = process.env;
 
 // ----------------------------------------------------------------
@@ -36,7 +36,6 @@ const app = express();
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(express.static(__dirname + '/styles'));
-app.use(express.static(__dirname + '/src'));
 app.use(
 	session({
 		secret: SESSION_SECRET,
@@ -61,7 +60,6 @@ app.post('/sign-up', async (req, res) => {
 		const existingUser = await User.findOne({
 			username: req.body.username,
 		}).exec();
-
 		if (existingUser !== null) {
 			throw new Error('Username In Use');
 		}
