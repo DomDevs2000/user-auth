@@ -21,7 +21,6 @@ const User = mongoose.model(
 		username: {
 			type: String,
 			required: true,
-
 			unique: true,
 		},
 		password: {
@@ -65,6 +64,15 @@ app.post('/sign-up', async (req, res) => {
 
 		if (existingUser !== null) {
 			throw new Error('Username In Use');
+		}
+		if (req.body.password.length < 6) {
+			throw new Error('Password Must Be At Least 6 characters');
+		}
+		if (req.body.password.length > 16) {
+			throw new Error('Password Must Be Less Than 16 characters');
+		}
+		if (req.body.password == 'password') {
+			throw new Error('Password cannot be password');
 		}
 		const saltedPassword = await hashedPassword(req.body.password);
 
