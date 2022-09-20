@@ -8,7 +8,7 @@ const Schema = mongoose.Schema;
 require('dotenv').config();
 
 // ----------------------------------------------------------------
-async function db() {
+async function database() {
 	await mongoose.connect(process.env.DB_URL);
 	console.log('Connected to MongoDB');
 }
@@ -22,8 +22,6 @@ const User = mongoose.model(
 	})
 );
 // ----------------------------------------------------------------
-
-db().catch((err) => console.log(err));
 
 // --------------------------------------------------
 
@@ -101,9 +99,15 @@ passport.deserializeUser(function (id, done) {
 	});
 });
 
-app.listen(process.env.SERVER_PORT, () =>
-	console.log(`Server Listening On Port: ${process.env.SERVER_PORT}`)
-);
+database().then(async (connection) => {
+	try {
+		app.listen(process.env.SERVER_PORT, () =>
+			console.log(`Server Listening On Port: ${process.env.SERVER_PORT}`)
+		);
+	} catch (error) {
+		console.error(error);
+	}
+});
 
 // Autenticate Usernames Passwords -- Check if User Exists if not display information
 // bcrypt / hash passwords

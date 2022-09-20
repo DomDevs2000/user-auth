@@ -41,6 +41,8 @@ body {
 
 .submit-btn:hover {
 	background-color: aqua;
+	transition: 0.4s;
+	opacity: 0.6;
 }
 
 .auth-user {
