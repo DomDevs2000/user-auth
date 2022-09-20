@@ -18,8 +18,17 @@ async function database() {
 const User = mongoose.model(
 	'User',
 	new Schema({
-		username: { type: String, required: true, unique: true },
-		password: { type: String, required: true },
+		username: {
+			type: String,
+			required: true,
+
+			unique: true,
+		},
+		password: {
+			type: String,
+			required: true,
+			unique: true,
+		},
 	})
 );
 // ----------------------------------------------------------------
@@ -28,6 +37,7 @@ const app = express();
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(express.static(__dirname + '/styles'));
+app.use(express.static(__dirname + '/src'));
 app.use(
 	session({
 		secret: SESSION_SECRET,
@@ -54,15 +64,16 @@ app.post('/sign-up', async (req, res) => {
 		}).exec();
 
 		if (existingUser !== null) {
-			throw new Error('username in use');
+			throw new Error('Username In Use');
 		}
 		const saltedPassword = await hashedPassword(req.body.password);
+
 		const user = new User({
 			username: req.body.username,
 			password: saltedPassword,
 		}).save((err) => {
 			if (err) {
-				return next(err);
+				return err;
 			}
 			res.redirect('/');
 		});
