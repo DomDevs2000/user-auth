@@ -17,13 +17,11 @@ async function database() {
 const User = mongoose.model(
 	'User',
 	new Schema({
-		username: { type: String, required: true },
+		username: { type: String, required: true, unique: true },
 		password: { type: String, required: true },
 	})
 );
 // ----------------------------------------------------------------
-
-// --------------------------------------------------
 
 const app = express();
 app.set('views', __dirname + '/views');
@@ -39,19 +37,31 @@ app.get('/', (req, res) => {
 });
 
 app.get('/sign-up', (req, res) => {
-	res.render('sign-up-form');
+	res.render('sign-up-form', { error: null });
 });
 
-app.post('/sign-up', (req, res) => {
-	const user = new User({
-		username: req.body.username,
-		password: req.body.password,
-	}).save((err) => {
-		if (err) {
-			return next(err);
+app.post('/sign-up', async (req, res) => {
+	try {
+		const existingUser = await User.findOne({
+			username: req.body.username,
+		}).exec();
+
+		if (existingUser !== null) {
+			throw new Error('username in use');
 		}
-		res.redirect('/');
-	});
+		const saltedPassword = await hashedPassword(req.body.password);
+		const user = new User({
+			username: req.body.username,
+			password: saltedPassword,
+		}).save((err) => {
+			if (err) {
+				return next(err);
+			}
+			res.redirect('/');
+		});
+	} catch (error) {
+		res.status(400).render('sign-up-form', { error: error });
+	}
 });
 
 app.post(
@@ -81,7 +91,7 @@ passport.use(
 			if (!user) {
 				return done(null, false, { message: 'incorrect Username' });
 			}
-			if (user.password !== password) {
+			if (!comparePassword(user.password, password)) {
 				return done(null, false, { message: 'incorrect Password' });
 			}
 			return done(null, user);
@@ -99,6 +109,27 @@ passport.deserializeUser(function (id, done) {
 	});
 });
 
+const comparePassword = async (userPassword, requestedPassword) => {
+	try {
+		const isValid = await bcrypt.compare(requestedPassword, userPassword);
+		return isValid;
+	} catch (error) {
+		console.log(error);
+		throw new Error('error comparing password');
+	}
+};
+const hashedPassword = async (password) => {
+	try {
+		const saltedPassword = await bcrypt.hash('password', 10);
+		return saltedPassword;
+	} catch (error) {
+		console.error(error);
+		throw new Error('error hashing password');
+	}
+};
+
+// -------------------------------
+
 database().then(async (connection) => {
 	try {
 		app.listen(process.env.SERVER_PORT, () =>
@@ -108,23 +139,3 @@ database().then(async (connection) => {
 		console.error(error);
 	}
 });
-
-// Autenticate Usernames Passwords -- Check if User Exists if not display information
-// bcrypt / hash passwords
-
-// bcrypt.hash('password', 10, (err, hashedPassword) => {
-// 	if (err) {
-// 		console.log('Failed to generate a new password');
-// 	} else {
-// 		password = hashedPassword;
-// 	}
-// });
-// bcrypt.compare(password, user.password, (err, res) => {
-// 	if (res) {
-// 		// passwords match! log user in
-// 		return done(null, user);
-// 	} else {
-// 		// passwords do not match!
-// 		return done(null, false, { message: 'Incorrect password' });
-// 	}
-// });

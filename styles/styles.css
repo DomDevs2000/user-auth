@@ -55,3 +55,8 @@ body {
 	border-radius: 10px;
 	padding: 25px;
 }
+
+.error-message {
+	display: block;
+	color: red;
+}

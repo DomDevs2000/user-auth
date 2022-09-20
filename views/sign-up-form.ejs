@@ -7,10 +7,14 @@
 	</head>
 	<body>
 		<div class="form-container">
+
 			<h1>Sign Up</h1>
 			<form class="form" action="" method="POST">
 				<label for="username">Username</label>
-				<input name="username" placeholder="Username" type="text" requried />
+				<input name="username" placeholder="Username" type="text" required />
+				<% if (error) {%>
+					<span class="error-message"> <%= error.message %><e</span>
+				<%}%>
 				<label for="password">Password</label>
 				<input
 					name="password"
