@@ -6,6 +6,7 @@ const { default: mongoose } = require('mongoose');
 const LocalStrategy = require('passport-local').Strategy;
 const Schema = mongoose.Schema;
 require('dotenv').config();
+const { SALT, SESSION_SECRET, SERVER_PORT } = process.env;
 
 // ----------------------------------------------------------------
 async function database() {
@@ -27,7 +28,13 @@ const app = express();
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(express.static(__dirname + '/styles'));
-app.use(session({ secret: 'test', resave: false, saveUninitialized: true }));
+app.use(
+	session({
+		secret: SESSION_SECRET,
+		resave: false,
+		saveUninitialized: true,
+	})
+);
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
@@ -120,7 +127,7 @@ const comparePassword = async (userPassword, requestedPassword) => {
 };
 const hashedPassword = async (password) => {
 	try {
-		const saltedPassword = await bcrypt.hash('password', 10);
+		const saltedPassword = await bcrypt.hash(SALT, 10);
 		return saltedPassword;
 	} catch (error) {
 		console.error(error);
@@ -133,7 +140,7 @@ const hashedPassword = async (password) => {
 database().then(async (connection) => {
 	try {
 		app.listen(process.env.SERVER_PORT, () =>
-			console.log(`Server Listening On Port: ${process.env.SERVER_PORT}`)
+			console.log(`Server Listening On Port: ${SERVER_PORT}`)
 		);
 	} catch (error) {
 		console.error(error);
