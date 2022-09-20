@@ -26,7 +26,7 @@ const User = mongoose.model(
 // --------------------------------------------------
 
 const app = express();
-app.set('views', __dirname);
+app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(express.static(__dirname + '/styles'));
 app.use(session({ secret: 'test', resave: false, saveUninitialized: true }));
