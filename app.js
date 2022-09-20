@@ -1,6 +1,5 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const { default: mongoose } = require('mongoose');
@@ -26,11 +25,12 @@ const User = mongoose.model(
 
 db().catch((err) => console.log(err));
 
-// ----------------------------------------------------------------
+// --------------------------------------------------
 
 const app = express();
 app.set('views', __dirname);
 app.set('view engine', 'ejs');
+app.use(express.static(__dirname + '/styles'));
 app.use(session({ secret: 'test', resave: false, saveUninitialized: true }));
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));

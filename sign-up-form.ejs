@@ -2,16 +2,25 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<title></title>
+		<title>Sign Up</title>
+		<link rel="stylesheet" href="/styles.css"
 	</head>
 	<body>
-		<h1>Sign Up</h1>
-		<form action="" method="POST">
-			<label for="username">Username</label>
-			<input name="username" placeholder="username" type="text" />
-			<label for="password">Password</label>
-			<input name="password" type="password" />
-			<button>Sign Up</button>
-		</form>
+		<div class="form-container">
+			<h1>Sign Up</h1>
+			<form class="form" action="" method="POST">
+				<label for="username">Username</label>
+				<input name="username" placeholder="username" type="text" requried />
+				<label for="password">Password</label>
+				<input
+					name="password"
+					placeholder="Password"
+					type="password"
+					required
+				/>
+				<button>Sign Up</button>
+				<h3>Already Got An Account? <a href="/">Login</a></h1>
+			</form>
+		</div>
 	</body>
 </html>
