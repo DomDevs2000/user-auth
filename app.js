@@ -60,6 +60,7 @@ app.post('/sign-up', async (req, res) => {
 		const existingUser = await User.findOne({
 			username: req.body.username,
 		}).exec();
+
 		if (existingUser !== null) {
 			throw new Error('Username In Use');
 		}

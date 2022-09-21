@@ -2,13 +2,18 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<title>User Authentication</title>
+		<% if (user) {%>
+			<title>Welcome Back <%= user.username %></title>
+		<% } else { %>
+			<title>Login</title>
+			<%}%>
 		<link rel="stylesheet" href="styles.css" />
 	</head>
 	<body>
 		<div class="auth-user">
 		<% if (user) {%>
 		<h1>Welcome Back <%= user.username %></h1>
+	
 		<a href="/log-out">LOG OUT</a>
 		<% } else { %>
 		</div>
