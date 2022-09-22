@@ -7,15 +7,13 @@
 	</head>
 	<body>
 		<div class="form-container">
-
-			<h1>Sign Up</h1>
 			<form class="form" action="" method="POST">
-				<label for="username">Username</label>
-				<input name="username" placeholder="Username" type="text" required/>
-
-				<label for="password">Password</label>
-				
-				<input name="password" placeholder="Password" type="password" required/>
+				<h1>Sign Up</h1>
+				<div class="input-group">
+					<label for="username">Username:</label>
+					<input name="username" placeholder="Username" type="text" required />
+					<label for="password">Password:</label>
+					<input name="password" placeholder="Password" type="password" required/>
 				<% if (error) {%>
 					<br>
 					<span class="error-message"> <%= error.message %></span>
