@@ -3,33 +3,32 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const passport = require('passport');
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 const LocalStrategy = require('passport-local').Strategy;
-const Schema = mongoose.Schema;
+// const Schema = mongoose.Schema;
 const { SALT, SESSION_SECRET, SERVER_PORT } = process.env;
+const options = { verbose: console.log };
+const Database = require('better-sqlite3');
 
 // ----------------------------------------------------------------
-async function database() {
-	await mongoose.connect(process.env.DB_URL);
-	console.log('Connected to MongoDB');
-}
 
-// create mongoose model
-const User = mongoose.model(
-	'User',
-	new Schema({
-		username: {
-			type: String,
-			required: true,
-			unique: true,
-		},
-		password: {
-			type: String,
-			required: true,
-			unique: true,
-		},
-	})
-);
+// connect to db
+const db = new Database('./test.db', options);
+//CREATE TABLE
+// db.run(sql);
+
+//DROP TABLE
+// db.run('DROP TABLE users');
+
+//INSERT DATA
+
+// sql = 'INSERT INTO users (username, password) VALUES (?,?)';
+// db.run(sql, ['testuser1', 'testpassword1'], (err) => {
+// 	if (err) return console.error;
+// });
+
+//QUERY  DB
+
 // ----------------------------------------------------------------
 
 const app = express();
@@ -48,7 +47,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
 app.get('/', (req, res) => {
-	res.render('index', { user: req.user });
+	console.log('test', req.error);
+	res.render('index', { user: req.user, error: req.error });
+});
+app.get('/fail', (req, res) => {
+	console.log('fail)');
+	// res.send(' {failed: true} ');
 });
 
 app.get('/sign-up', (req, res) => {
@@ -92,8 +96,9 @@ app.post('/sign-up', async (req, res) => {
 app.post(
 	'/log-in',
 	passport.authenticate('local', {
-		successRedirect: '/',
-		failureRedirect: '/',
+		successReturnToOrRedirect: '/',
+		failureRedirect: '/fail',
+		failureMessage: true,
 	})
 );
 
@@ -108,30 +113,39 @@ app.get('/log-out', (req, res, next) => {
 // ----------------------------------------------------------------
 
 passport.use(
-	new LocalStrategy((username, password, done) => {
-		User.findOne({ username: username }, (err, user) => {
-			if (err) {
-				return done(err);
-			}
+	new LocalStrategy(async (username, password, done) => {
+		try {
+			const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
+			const user = stmt.get(username);
+			console.log('test2', user);
 			if (!user) {
-				return done(null, false, { message: 'incorrect Username' });
+				return done({ message: 'incorrect Username' });
 			}
 			if (!comparePassword(user.password, password)) {
-				return done(null, false, { message: 'incorrect Password' });
+				return done({ message: 'incorrect Password' });
 			}
 			return done(null, user);
-		});
+		} catch (error) {
+			done(error);
+		}
 	})
 );
 
 passport.serializeUser(function (user, done) {
-	done(null, user.id);
+	done(null, user.username);
 });
 
-passport.deserializeUser(function (id, done) {
-	User.findById(id, function (err, user) {
-		done(err, user);
-	});
+passport.deserializeUser(async (username, done) => {
+	try {
+		const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
+		const user = stmt.get(username);
+		if (!user) {
+			done({ message: 'incorrect Username' });
+		}
+		return done(null, user);
+	} catch (error) {
+		done(error);
+	}
 });
 
 const comparePassword = async (userPassword, requestedPassword) => {
@@ -139,7 +153,7 @@ const comparePassword = async (userPassword, requestedPassword) => {
 		const isValid = await bcrypt.compare(requestedPassword, userPassword);
 		return isValid;
 	} catch (error) {
-		console.log(error);
+		console.log('error', error);
 		throw new Error('error comparing password');
 	}
 };
@@ -148,19 +162,13 @@ const hashedPassword = async (password) => {
 		const saltedPassword = await bcrypt.hash(SALT, 10);
 		return saltedPassword;
 	} catch (error) {
-		console.error(error);
+		console.error('error2', error);
 		throw new Error('error hashing password');
 	}
 };
 
 // -------------------------------
 
-database().then(async (connection) => {
-	try {
-		app.listen(process.env.SERVER_PORT, () =>
-			console.log(`Server Listening On Port: ${SERVER_PORT}`)
-		);
-	} catch (error) {
-		console.error(error);
-	}
-});
+app.listen(process.env.SERVER_PORT, () =>
+	console.log(`Server Listening On Port: ${SERVER_PORT}`)
+);
