@@ -47,12 +47,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
 app.get('/', (req, res) => {
-	console.log('test', req.error);
-	res.render('index', { user: req.user, error: req.error });
+	res.render('index', { user: req.user, error: null });
 });
 app.get('/fail', (req, res) => {
-	console.log('fail)');
-	// res.send(' {failed: true} ');
+	res.send(' {failed: true} ');
 });
 
 app.get('/sign-up', (req, res) => {
@@ -78,7 +76,6 @@ app.post('/sign-up', async (req, res) => {
 			throw new Error('Password cannot be password');
 		}
 		const saltedPassword = await hashedPassword(req.body.password);
-
 		const user = new User({
 			username: req.body.username,
 			password: saltedPassword,
@@ -117,13 +114,13 @@ passport.use(
 		try {
 			const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
 			const user = stmt.get(username);
-			console.log('test2', user);
 			if (!user) {
 				return done({ message: 'incorrect Username' });
 			}
-			if (!comparePassword(user.password, password)) {
-				return done({ message: 'incorrect Password' });
+			if (user.password != password) {
+				return done(null, false, { message: 'incorrect Password' });
 			}
+
 			return done(null, user);
 		} catch (error) {
 			done(error);
@@ -148,24 +145,24 @@ passport.deserializeUser(async (username, done) => {
 	}
 });
 
-const comparePassword = async (userPassword, requestedPassword) => {
-	try {
-		const isValid = await bcrypt.compare(requestedPassword, userPassword);
-		return isValid;
-	} catch (error) {
-		console.log('error', error);
-		throw new Error('error comparing password');
-	}
-};
-const hashedPassword = async (password) => {
-	try {
-		const saltedPassword = await bcrypt.hash(SALT, 10);
-		return saltedPassword;
-	} catch (error) {
-		console.error('error2', error);
-		throw new Error('error hashing password');
-	}
-};
+// const comparePassword = async (userPassword, requestedPassword) => {
+// 	try {
+// 		const isValid = await bcrypt.compare(requestedPassword, userPassword);
+// 		return isValid;
+// 	} catch (error) {
+// 		console.log('error', error);
+// 		throw new Error('error comparing password');
+// 	}
+// };
+// const hashedPassword = async (password) => {
+// 	try {
+// 		const saltedPassword = await bcrypt.hash(SALT, 10);
+// 		return saltedPassword;
+// 	} catch (error) {
+// 		console.error('error2', error);
+// 		throw new Error('error hashing password');
+// 	}
+// };
 
 // -------------------------------
 
