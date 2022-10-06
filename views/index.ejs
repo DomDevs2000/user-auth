@@ -11,20 +11,21 @@
 	</head>
 	<body>
 		<% if (signUpSuccessful) {%>
-			
+
 				<span class="error-message">Successfully Signed Up, Please Log In!</span> 
 				<!-- change css to new message -->
 		<%} %>
-
+		<% if (error) {%>
+			<br>
+			<span class="error-message"> <%= error.message %></span>
+		<%}%>
 		<% if (user) {%>
 		<div class="auth-user">
 			<h1>Welcome Back <%= user.username %></h1>
 			<a href="/log-out">LOG OUT</a>
 		</div>
 		<% } else { %>
-		</div>
 		
-
 		<div class="form-container">
 			<form class="form" action="/log-in" method="POST">
 				<h1>Log In</h1>

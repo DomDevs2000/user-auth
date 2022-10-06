@@ -9,10 +9,8 @@ const options = { verbose: console.log };
 const Database = require('better-sqlite3');
 
 // ----------------------------------------------------------------
-
 // connect to db
 const db = new Database('./test.db', options);
-
 // ----------------------------------------------------------------
 
 const app = express();
@@ -26,16 +24,26 @@ app.use(
 		saveUninitialized: true,
 	})
 );
+
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
 app.get('/', (req, res) => {
-	res.render('index', { user: req.user, error: null, signUpSuccessful: false });
+	let error = null;
+
+	if (req.session && req.session.messages && req.session.messages.length > 0) {
+		error = { message: req.session.messages[0] };
+	}
+	res.render('index', {
+		user: req.user,
+		error: error,
+		signUpSuccessful: false,
+	});
 });
-app.get('/fail', (req, res) => {
-	res.send(' {failed: true} ');
-});
+// app.get('/fail', (req, res) => {
+// 	res.send(' {failed: true} ');
+// });
 
 app.get('/sign-up', (req, res) => {
 	res.render('sign-up-form', { error: null });
@@ -88,8 +96,8 @@ app.post('/sign-up', async (req, res) => {
 app.post(
 	'/log-in',
 	passport.authenticate('local', {
-		successReturnToOrRedirect: '/',
-		failureRedirect: '/fail',
+		successRedirect: '/',
+		failureRedirect: '/',
 		failureMessage: true,
 	})
 );
@@ -105,23 +113,26 @@ app.get('/log-out', (req, res, next) => {
 // ----------------------------------------------------------------
 
 passport.use(
-	new LocalStrategy(async (username, password, done) => {
-		try {
-			const user = db
-				.prepare('SELECT * FROM users WHERE username = ?')
-				.get(username);
-			if (!user) {
-				return done({ message: 'incorrect Username' });
+	new LocalStrategy(
+		{ passReqToCallback: true },
+		async (req, username, password, done) => {
+			req.session.messages = [];
+			try {
+				const user = db
+					.prepare('SELECT * FROM users WHERE username = ?')
+					.get(username);
+				if (!user) {
+					return done(null, false, { message: 'Incorrect Username' });
+				}
+				if (user.password != password) {
+					return done(null, false, { message: 'Incorrect Password' });
+				}
+				return done(null, user);
+			} catch (error) {
+				done(error);
 			}
-			if (user.password != password) {
-				return done(null, false, { message: 'incorrect Password' });
-			}
-
-			return done(null, user);
-		} catch (error) {
-			done(error);
 		}
-	})
+	)
 );
 
 passport.serializeUser(function (user, done) {
