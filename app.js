@@ -3,9 +3,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const passport = require('passport');
-// const mongoose = require('mongoose');
 const LocalStrategy = require('passport-local').Strategy;
-// const Schema = mongoose.Schema;
 const { SALT, SESSION_SECRET, SERVER_PORT } = process.env;
 const options = { verbose: console.log };
 const Database = require('better-sqlite3');
@@ -14,20 +12,6 @@ const Database = require('better-sqlite3');
 
 // connect to db
 const db = new Database('./test.db', options);
-//CREATE TABLE
-// db.run(sql);
-
-//DROP TABLE
-// db.run('DROP TABLE users');
-
-//INSERT DATA
-
-// sql = 'INSERT INTO users (username, password) VALUES (?,?)';
-// db.run(sql, ['testuser1', 'testpassword1'], (err) => {
-// 	if (err) return console.error;
-// });
-
-//QUERY  DB
 
 // ----------------------------------------------------------------
 
@@ -47,7 +31,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
 app.get('/', (req, res) => {
-	res.render('index', { user: req.user, error: null });
+	res.render('index', { user: req.user, error: null, signUpSuccessful: false });
 });
 app.get('/fail', (req, res) => {
 	res.send(' {failed: true} ');
@@ -59,33 +43,44 @@ app.get('/sign-up', (req, res) => {
 
 app.post('/sign-up', async (req, res) => {
 	try {
-		const existingUser = await User.findOne({
-			username: req.body.username,
-		}).exec();
+		let username = req.body.username;
+		let password = req.body.password;
 
-		if (existingUser !== null) {
-			throw new Error('Username In Use');
-		}
-		if (req.body.password.length < 6) {
+		if (username.length < 6) {
 			throw new Error('Password Must Be At Least 6 characters');
 		}
-		if (req.body.password.length > 16) {
+		if (password.length > 16) {
 			throw new Error('Password Must Be Less Than 16 characters');
 		}
-		if (req.body.password == 'password') {
+		if (password == 'password') {
 			throw new Error('Password cannot be password');
 		}
-		const saltedPassword = await hashedPassword(req.body.password);
-		const user = new User({
-			username: req.body.username,
-			password: saltedPassword,
-		}).save((err) => {
-			if (err) {
-				return err;
-			}
-			res.redirect('/');
-		});
+
+		const user = db
+			.prepare('SELECT * FROM users WHERE username = ?')
+			.get(username);
+		console.log(user);
+
+		if (user) {
+			throw new Error('Username In Use');
+		}
+		const results = db
+			.prepare(
+				`INSERT INTO users (username, password) VALUES (@username,@password)`
+			)
+			.run({ username, password });
+
+		console.log(results.changes);
+
+		const newUser = db
+			.prepare('SELECT * FROM users WHERE username = ?')
+			.get(username);
+		if (newUser) {
+			res.render('index', { user: null, signUpSuccessful: true });
+		}
+		// const saltedPassword = await hashedPassword(req.body.password);
 	} catch (error) {
+		console.log(error);
 		res.status(400).render('sign-up-form', { error: error });
 	}
 });
@@ -112,8 +107,9 @@ app.get('/log-out', (req, res, next) => {
 passport.use(
 	new LocalStrategy(async (username, password, done) => {
 		try {
-			const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
-			const user = stmt.get(username);
+			const user = db
+				.prepare('SELECT * FROM users WHERE username = ?')
+				.get(username);
 			if (!user) {
 				return done({ message: 'incorrect Username' });
 			}
