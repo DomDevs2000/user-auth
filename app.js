@@ -63,7 +63,7 @@ app.post('/sign-up', async (req, res) => {
 		const user = db
 			.prepare('SELECT * FROM users WHERE username = ?')
 			.get(username);
-		console.log(user);
+
 
 		if (user) {
 			throw new Error('Username In Use');
@@ -74,7 +74,7 @@ app.post('/sign-up', async (req, res) => {
 			)
 			.run({ username, password });
 
-		console.log(results.changes);
+
 
 		const newUser = db
 			.prepare('SELECT * FROM users WHERE username = ?')
@@ -84,7 +84,7 @@ app.post('/sign-up', async (req, res) => {
 		}
 		// const saltedPassword = await hashedPassword(req.body.password);
 	} catch (error) {
-		console.log(error);
+
 		res.status(400).render('sign-up-form', { error: error });
 	}
 });
