@@ -41,9 +41,6 @@ app.get('/', (req, res) => {
 		signUpSuccessful: false,
 	});
 });
-// app.get('/fail', (req, res) => {
-// 	res.send(' {failed: true} ');
-// });
 
 app.get('/sign-up', (req, res) => {
 	res.render('sign-up-form', { error: null });
@@ -53,7 +50,6 @@ app.post('/sign-up', async (req, res) => {
 	try {
 		let username = req.body.username;
 		let password = req.body.password;
-
 		if (username.length < 6) {
 			throw new Error('Password Must Be At Least 6 characters');
 		}
@@ -84,7 +80,7 @@ app.post('/sign-up', async (req, res) => {
 			.prepare('SELECT * FROM users WHERE username = ?')
 			.get(username);
 		if (newUser) {
-			res.render('index', { user: null, signUpSuccessful: true });
+			res.render('index', { user: null, signUpSuccessful: true , error: null});
 		}
 		// const saltedPassword = await hashedPassword(req.body.password);
 	} catch (error) {
@@ -118,7 +114,7 @@ passport.use(
 		async (req, username, password, done) => {
 			req.session.messages = [];
 			try {
-				const user = db
+				const user =  db
 					.prepare('SELECT * FROM users WHERE username = ?')
 					.get(username);
 				if (!user) {
@@ -138,7 +134,6 @@ passport.use(
 passport.serializeUser(function (user, done) {
 	done(null, user.username);
 });
-
 passport.deserializeUser(async (username, done) => {
 	try {
 		const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
