@@ -1,5 +1,6 @@
 .history
 .env
 node_modules
-test.db
 .idea
+users.db
+test.db
