@@ -1,44 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<% if (user) {%>
-			<title>Welcome Back <%= user.username %></title>
-		<% } else { %>
-			<title>Login</title>
-			<%}%>
-		<link rel="stylesheet" href="styles.css" />
-	</head>
-	<body>
-		<% if (signUpSuccessful) {%>
+<head>
+    <meta charset="UTF-8"/>
+    <% if (user) { %>
+        <title>Welcome Back <%= user.username %></title>
+    <% } else { %>
+        <title>Login</title>
+    <% } %>
+    <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<% if (signUpSuccessful) { %>
 
-				<span class="error-message">Successfully Signed Up, Please Log In!</span> 
-				<!-- change css to new message -->
-		<%} %>
-		<% if (error) {%>
-			<br>
-			<span class="error-message"> <%= error.message %></span>
-		<%}%>
-		<% if (user) {%>
-		<div class="auth-user">
-			<h1>Welcome Back <%= user.username %></h1>
-			<a href="/log-out">LOG OUT</a>
-		</div>
-		<% } else { %>
-		
-		<div class="form-container">
-			<form class="form" action="/log-in" method="POST">
-				<h1>Log In</h1>
-				<div class="input-group">
-					<label for="username">Username:</label>
-					<input name="username" placeholder="Username" type="text" required />
-					<label for="password">Password:</label>
-					<input name="password" placeholder="Password" type="password" required/>
-					<button class="submit-btn">Log In</button>
-					<h3>Haven't Got An Account? <a href="/sign-up">Create Account</a></h3>
-				</div>
-			</form>
-		</div>
-		<%}%>
-	</body>
+    <span class="error-message">Successfully Signed Up, Please Log In!</span>
+    <!-- change css to new message -->
+<% } %>
+<% if (user) { %>
+    <div class="auth-user">
+        <h1>Welcome Back <%= user.username %></h1>
+        <a href="/log-out">LOG OUT</a>
+    </div>
+<% } else { %>
+
+    <div class="form-container">
+        <form class="form" action="/log-in" method="POST">
+            <h1>Log In</h1>
+            <div class="input-group">
+                <label for="username">Username:</label>
+                <input name="username" placeholder="Username" type="text" required/>
+                <label for="password">Password:</label>
+                <input name="password" placeholder="Password" type="password" required/>
+                <% if (error) { %>
+                    <br>
+                    <span class="error-message"> <%= error.message %></span>
+                    <br>
+                <% } %>
+                <button class="submit-btn">Log In</button>
+
+                <h3>Haven't Got An Account? <a href="/sign-up">Create Account</a></h3>
+            </div>
+        </form>
+    </div>
+<% } %>
+</body>
 </html>
