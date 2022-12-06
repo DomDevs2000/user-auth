@@ -1,3 +1,10 @@
+# Full-Stack User Authentication
+
+![login](/screenshots/login.png?raw=true "login page" )
+![login](/screenshots/signup.png?raw=true "signup page" )
+![login](/screenshots/successlogin.png?raw=true "successful login page" )
+
+
 # What is this project?
 This is a user account creation and login page where users can create an account and login. Users are authorised and 
 then logged in, with their username being displayed as logged in if successful.
