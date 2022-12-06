@@ -10,11 +10,7 @@
     <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-<% if (signUpSuccessful) { %>
 
-    <span class="error-message">Successfully Signed Up, Please Log In!</span>
-    <!-- change css to new message -->
-<% } %>
 <% if (user) { %>
     <div class="auth-user">
         <h1>Welcome Back <%= user.username %></h1>
@@ -34,6 +30,11 @@
                     <br>
                     <span class="error-message"> <%= error.message %></span>
                     <br>
+                <% } %>
+                <% if (signUpSuccessful) { %>
+
+                    <span class="error-message">Successfully Signed Up, Please Log In!</span>
+                    <!-- change css to new message -->
                 <% } %>
                 <button class="submit-btn">Log In</button>
 
