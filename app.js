@@ -10,7 +10,8 @@ const Database = require('better-sqlite3');
 
 // ----------------------------------------------------------------
 // connect to db
-const db = new Database('./test.db', options);
+const db = new Database('./test.db', options)
+db.exec(`CREATE TABLE IF NOT EXISTS users ( id INTEGER PRIMARY KEY AUTOINCREMENT)`)
 // ----------------------------------------------------------------
 
 const app = express();
@@ -64,17 +65,15 @@ app.post('/sign-up', async (req, res) => {
 			.prepare('SELECT * FROM users WHERE username = ?')
 			.get(username);
 
-
 		if (user) {
 			throw new Error('Username In Use');
 		}
+
 		const results = db
 			.prepare(
 				`INSERT INTO users (username, password) VALUES (@username,@password)`
 			)
 			.run({ username, password });
-
-
 
 		const newUser = db
 			.prepare('SELECT * FROM users WHERE username = ?')
@@ -84,7 +83,6 @@ app.post('/sign-up', async (req, res) => {
 		}
 		// const saltedPassword = await hashedPassword(req.body.password);
 	} catch (error) {
-
 		res.status(400).render('sign-up-form', { error: error });
 	}
 });
