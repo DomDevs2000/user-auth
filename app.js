@@ -10,7 +10,7 @@ const Database = require('better-sqlite3');
 
 // ----------------------------------------------------------------
 // connect to db
-const db = new Database('foobar.db', { verbose: console.log });
+const db = new Database('users.db', { verbose: console.log });
 db.exec(`CREATE TABLE IF NOT EXISTS users (username, password)`)
 // ----------------------------------------------------------------
 
