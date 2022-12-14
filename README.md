@@ -1,8 +1,5 @@
 # Full-Stack User Authentication
-
-![login](/screenshots/login.png?raw=true "login page" )
-![login](/screenshots/signup.png?raw=true "signup page" )
-![login](/screenshots/successlogin.png?raw=true "successful login page" )
+View this project [Live](https://user-auth-fn0e.onrender.com)
 
 
 # What is this project?
