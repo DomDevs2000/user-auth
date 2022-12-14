@@ -10,7 +10,7 @@ const Database = require('better-sqlite3');
 
 // ----------------------------------------------------------------
 // connect to db
-const db = new Database('/test.db', options)
+const db = new Database('./test.db', options)
 // db.exec(`CREATE TABLE IF NOT EXISTS users ( id INTEGER PRIMARY KEY AUTOINCREMENT)`)
 // ----------------------------------------------------------------
 
