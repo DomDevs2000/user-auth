@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <% if (user) { %>
+        <title>Welcome Back <%= user.username %></title>
+    <% } else { %>
+        <title>Login</title>
+    <% } %>
+    <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+
+<% if (user) { %>
+    <div class="auth-user">
+        <h1>Welcome Back <%= user.username %></h1>
+        <a href="/log-out">LOG OUT</a>
+    </div>
+<% } else { %>
+
+<% } %>
+</body>
+</html>
