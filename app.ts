@@ -1,14 +1,21 @@
 import {Request, Response}  from "express";
 
-require('dotenv').config();
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const session = require('express-session');
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const {SALT, SESSION_SECRET, SERVER_PORT} = process.env;
-const Database = require('better-sqlite3');
+import {config} from "dotenv";
 
+import express from "express";
+
+
+// const bcrypt = require('bcryptjs');
+import session from "express-session";
+
+import passport from "passport";
+
+import {Strategy as LocalStrategy} from "passport-local";
+
+import Database from "better-sqlite3";
+
+config();
+const {SALT, SESSION_SECRET, SERVER_PORT} = process.env;
 // ----------------------------------------------------------------
 // type imports
 type User = {
@@ -16,16 +23,22 @@ type User = {
     password: string
 }
 
-interface sessionData extends User {
-    session: {
-        messages: never[]
-        user: string
+declare global {
+    namespace Express {
+
+        interface Request {
+          user: User
+        }
     }
-    user: User
-    username: string
 }
 
 
+declare module 'express-session' {
+    interface SessionData {
+        user: User;
+        messages: string[]
+    }
+}
 // ----------------------------------------------------------------
 // connect to db
 const db = new Database('users.db', {verbose: console.log});
@@ -38,7 +51,7 @@ app.set('view engine', 'ejs');
 app.use(express.static(__dirname + '/styles'));
 app.use(
     session({
-        secret: SESSION_SECRET,
+        secret: SESSION_SECRET!,
         resave: false,
         saveUninitialized: true,
     })
@@ -48,7 +61,7 @@ app.use(passport.session());
 app.use(express.urlencoded({extended: false}));
 app.use(passport.initialize());
 
-app.get('/log-in', (req: sessionData, res: Response) => {
+app.get('/log-in', (req: Request, res: Response) => {
     let error = null;
     if (req.session && req.session.messages && req.session.messages.length > 0) {
         error = {message: req.session.messages[0]};
@@ -64,7 +77,7 @@ app.get('/', (req: Request, res: Response) => {
     res.render('sign-up-form', {error: null});
 });
 
-app.get('/welcome', (req: sessionData, res: Response) => {
+app.get('/welcome', (req: Request, res: Response) => {
     res.render('welcome', {user: req.user, error: null});
 });
 
@@ -130,7 +143,7 @@ app.get('/log-out', (req: Request, res: Response, next: (arg0: any) => void) => 
 passport.use(
     new LocalStrategy(
         {passReqToCallback: true},
-        async (req: sessionData, username: User, password: User, done: any) => {
+        async (req: Request, username: User, password: User, done: any) => {
             req.session.messages = [];
             try {
                 const user = db
@@ -150,7 +163,7 @@ passport.use(
     )
 );
 
-passport.serializeUser(function (user: sessionData, done: any) {
+passport.serializeUser((user: User, done: any) => {
     done(null, user.username);
 });
 passport.deserializeUser(async (username: User, done: any) => {
