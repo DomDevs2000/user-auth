@@ -1,3 +1,5 @@
+import {Request, Response}  from "express";
+
 require('dotenv').config();
 const express = require('express');
 const bcrypt = require('bcryptjs');
@@ -6,6 +8,23 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const {SALT, SESSION_SECRET, SERVER_PORT} = process.env;
 const Database = require('better-sqlite3');
+
+// ----------------------------------------------------------------
+// type imports
+type User = {
+    username: string
+    password: string
+}
+
+interface sessionData extends User {
+    session: {
+        messages: never[]
+        user: string
+    }
+    user: User
+    username: string
+}
+
 
 // ----------------------------------------------------------------
 // connect to db
@@ -29,7 +48,7 @@ app.use(passport.session());
 app.use(express.urlencoded({extended: false}));
 app.use(passport.initialize());
 
-app.get('/log-in', (req, res) => {
+app.get('/log-in', (req: sessionData, res: Response) => {
     let error = null;
     if (req.session && req.session.messages && req.session.messages.length > 0) {
         error = {message: req.session.messages[0]};
@@ -41,15 +60,15 @@ app.get('/log-in', (req, res) => {
     });
 });
 
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
     res.render('sign-up-form', {error: null});
 });
 
-app.get('/welcome', (req, res) => {
+app.get('/welcome', (req: sessionData, res: Response) => {
     res.render('welcome', {user: req.user, error: null});
 });
 
-app.post('/', async (req, res) => {
+app.post('/', async (req: Request, res: Response) => {
     try {
         let username = req.body.username;
         let password = req.body.password;
@@ -99,7 +118,7 @@ app.post(
 );
 
 
-app.get('/log-out', (req, res, next) => {
+app.get('/log-out', (req: Request, res: Response, next: (arg0: any) => void) => {
     req.logout(function (err) {
         if (err) {
             return next(err);
@@ -108,11 +127,10 @@ app.get('/log-out', (req, res, next) => {
     });
 });
 // ----------------------------------------------------------------
-
 passport.use(
     new LocalStrategy(
         {passReqToCallback: true},
-        async (req, username, password, done) => {
+        async (req: sessionData, username: User, password: User, done: any) => {
             req.session.messages = [];
             try {
                 const user = db
@@ -132,10 +150,10 @@ passport.use(
     )
 );
 
-passport.serializeUser(function (user, done) {
+passport.serializeUser(function (user: sessionData, done: any) {
     done(null, user.username);
 });
-passport.deserializeUser(async (username, done) => {
+passport.deserializeUser(async (username: User, done: any) => {
     try {
         const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
         const user = stmt.get(username);
