@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "outDir": "dist",
+    "module": "es6",
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "importsNotUsedAsValues": "preserve"
+  }
+}
