@@ -1,23 +1,21 @@
-import {Request, Response}  from "express";
-
+//imports
+import {Request, Response, NextFunction} from "express";
 import {config} from "dotenv";
-
 import express from "express";
-
-
-// const bcrypt = require('bcryptjs');
+import path from 'path'
+import {fileURLToPath} from "url";
 import session from "express-session";
-
 import passport from "passport";
-
 import {Strategy as LocalStrategy} from "passport-local";
-
 import Database from "better-sqlite3";
 
-config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const {SALT, SESSION_SECRET, SERVER_PORT} = process.env;
-// ----------------------------------------------------------------
-// type imports
+config();
+
+// types
+
 type User = {
     username: string
     password: string
@@ -25,9 +23,9 @@ type User = {
 
 declare global {
     namespace Express {
-
-        interface Request {
-          user: User
+        interface User {
+            username: string
+            password: string
         }
     }
 }
@@ -60,6 +58,8 @@ app.use(
 app.use(passport.session());
 app.use(express.urlencoded({extended: false}));
 app.use(passport.initialize());
+
+
 
 app.get('/log-in', (req: Request, res: Response) => {
     let error = null;
@@ -131,7 +131,7 @@ app.post(
 );
 
 
-app.get('/log-out', (req: Request, res: Response, next: (arg0: any) => void) => {
+app.get('/log-out', (req: Request, res: Response, next: NextFunction) => {
     req.logout(function (err) {
         if (err) {
             return next(err);
@@ -143,7 +143,7 @@ app.get('/log-out', (req: Request, res: Response, next: (arg0: any) => void) => 
 passport.use(
     new LocalStrategy(
         {passReqToCallback: true},
-        async (req: Request, username: User, password: User, done: any) => {
+        async (req: Request, username: string, password: string, done: any) => {
             req.session.messages = [];
             try {
                 const user = db
