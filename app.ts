@@ -29,18 +29,16 @@ declare global {
 	}
 }
 
-
 declare module 'express-session' {
 	interface SessionData {
 		user: User;
 		messages: string[];
 	}
 }
-// ----------------------------------------------------------------
+
 // connect to db
 const db = new Database('users.db', {verbose: console.log});
 db.exec(`CREATE TABLE IF NOT EXISTS users (username, password)`);
-// ----------------------------------------------------------------
 
 const app = express();
 app.set('views', __dirname + '/views');
@@ -137,7 +135,7 @@ app.get('/log-out', (req: Request, res: Response, next: NextFunction) => {
 		res.redirect('/');
 	});
 });
-// ----------------------------------------------------------------
+
 passport.use(
 	new LocalStrategy(
 		{passReqToCallback: true},
@@ -195,8 +193,6 @@ passport.deserializeUser(async (username: User, done: any) => {
 // 		throw new Error('error hashing password');
 // 	}
 // };
-
-// -------------------------------
 
 app.listen(process.env.SERVER_PORT, () =>
 	console.log(`Server Listening On Port: ${SERVER_PORT}`)
