@@ -8,6 +8,7 @@ import session from "express-session";
 import passport from "passport";
 import {Strategy as LocalStrategy} from "passport-local";
 import Database from "better-sqlite3";
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -81,6 +82,8 @@ app.post('/', async (req: Request, res: Response) => {
 	try {
 		let username = req.body.username;
 		let password = req.body.password;
+		const hash = await bcrypt.hash(password, 10);
+		console.log(hash);
 		if (username.length < 6) {
 			throw new Error('Password Must Be At Least 6 characters');
 		}
@@ -101,9 +104,10 @@ app.post('/', async (req: Request, res: Response) => {
 
 		const results = db
 			.prepare(
-				`INSERT INTO users (username, password) VALUES (@username,@password)`
+				`INSERT INTO users (username, password) VALUES (@username,@hash)`
 			)
-			.run({username, password});
+			.run({username, hash});
+
 
 		const newUser = db
 			.prepare('SELECT * FROM users WHERE username = ?')
@@ -111,7 +115,7 @@ app.post('/', async (req: Request, res: Response) => {
 		if (newUser) {
 			res.render('index', {user: null, signUpSuccessful: true, error: null});
 		}
-		// const saltedPassword = await hashedPassword(req.body.password);
+
 	} catch (error) {
 		res.status(400).render('sign-up-form', {error: error});
 	}
@@ -145,13 +149,20 @@ passport.use(
 				const user = db
 					.prepare('SELECT * FROM users WHERE username = ?')
 					.get(username);
+				if (user) {
+					const checkPass = await bcrypt.compare(password, user.password);
+					console.log(checkPass);
+					if (!checkPass) {
+						return done(null, false, {message: 'Incorrect Password'});
+					} else {
+						return done(null, user);
+					}
+
+				}
 				if (!user) {
 					return done(null, false, {message: 'Incorrect Username'});
 				}
-				if (user.password != password) {
-					return done(null, false, {message: 'Incorrect Password'});
-				}
-				return done(null, user);
+
 			} catch (error) {
 				done(error);
 			}
@@ -167,7 +178,7 @@ passport.deserializeUser(async (username: User, done: any) => {
 		const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
 		const user = stmt.get(username);
 		if (!user) {
-			done({message: 'incorrect Username'});
+			done({message: 'Incorrect Username'});
 		}
 		return done(null, user);
 	} catch (error) {
@@ -175,24 +186,6 @@ passport.deserializeUser(async (username: User, done: any) => {
 	}
 });
 
-// const comparePassword = async (userPassword, requestedPassword) => {
-// 	try {
-// 		const isValid = await bcrypt.compare(requestedPassword, userPassword);
-// 		return isValid;
-// 	} catch (error) {
-// 		console.log('error', error);
-// 		throw new Error('error comparing password');
-// 	}
-// };
-// const hashedPassword = async (password) => {
-// 	try {
-// 		const saltedPassword = await bcrypt.hash(SALT, 10);
-// 		return saltedPassword;
-// 	} catch (error) {
-// 		console.error('error2', error);
-// 		throw new Error('error hashing password');
-// 	}
-// };
 
 app.listen(process.env.SERVER_PORT, () =>
 	console.log(`Server Listening On Port: ${SERVER_PORT}`)
